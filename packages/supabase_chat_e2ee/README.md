@@ -4,6 +4,24 @@ Opt-in **end-to-end encryption** for [`supabase_chat`](../supabase_chat),
 built on the [Signal Protocol](https://signal.org/docs/) via
 [`libsignal_protocol_dart`](https://pub.dev/packages/libsignal_protocol_dart).
 
+> ## ⚠️ License: GPL-3.0 — you must open-source your app
+>
+> This package depends on `libsignal_protocol_dart`, which is licensed under
+> **GPL-3.0**. GPL is *strong copyleft*: when you **distribute** an app that
+> links it — and shipping to the App Store / Play Store counts as distribution —
+> you must release your app's **complete source code** under GPL-3.0.
+>
+> This package's own code is MIT, but that does not lift the obligation: the
+> combined work you ship is governed by the GPL dependency.
+>
+> | You are building… | Use |
+> |---|---|
+> | A **GPL / open-source** app | ✅ `supabase_chat_e2ee` (this package) |
+> | A **closed-source / proprietary** app | ❌ this package → use [`supabase_chat_seal`](../supabase_chat_seal) instead (**MIT**, ECDH+AES-GCM, same API; no forward secrecy) |
+>
+> If you are not certain your project can comply with GPL-3.0, **do not use this
+> package** — use `supabase_chat_seal`.
+
 The Supabase server stores **only ciphertext**. Plaintext never leaves the
 device: messages are encrypted per-recipient before insert and decrypted on
 receive. Forward secrecy and post-compromise security come from Signal's
