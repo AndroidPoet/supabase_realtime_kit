@@ -1,0 +1,21 @@
+name: supabase_realtime_kit
+description: >-
+  Headless, plug-and-play realtime primitives on top of the Supabase SDK:
+  live queries with optimistic merge, an offline outbox, presence and broadcast.
+version: 0.1.0
+repository: https://github.com/androidpoet/supabase_realtime_kit
+issue_tracker: https://github.com/androidpoet/supabase_realtime_kit/issues
+
+environment:
+  sdk: ^3.10.0
+
+# Pure Dart — no Flutter. Usable from Flutter, Dart server, or CLI.
+resolution: workspace
+
+dependencies:
+  meta: ^1.15.0
+  supabase: ^2.5.0
+
+dev_dependencies:
+  test: ^1.25.0
+  very_good_analysis: ^7.0.0

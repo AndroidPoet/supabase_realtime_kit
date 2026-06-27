@@ -1,0 +1,25 @@
+name: supabase_chat_example
+description: Example app for supabase_chat / supabase_chat_ui.
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.27.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  supabase_chat: ^0.1.0
+  supabase_chat_ui: ^0.1.0
+  supabase_flutter: ^2.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  very_good_analysis: ^7.0.0
+
+flutter:
+  uses-material-design: true

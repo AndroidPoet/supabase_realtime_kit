@@ -1,0 +1,16 @@
+name: _supabase_realtime_kit_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+
+# Native Dart pub workspace (Dart 3.6+). All member packages resolve against a
+# single shared lockfile, so local path deps "just work" during development.
+workspace:
+  - packages/supabase_realtime_kit
+  - packages/supabase_chat
+  - packages/supabase_chat_ui
+  - example
+
+dev_dependencies:
+  melos: ^8.0.0

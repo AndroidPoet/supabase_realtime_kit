@@ -1,0 +1,32 @@
+name: supabase_realtime_kit
+
+# Melos 8 delegates resolution to the native pub workspace declared in the root
+# pubspec.yaml; these scripts just fan commands across the member packages.
+scripts:
+  analyze:
+    description: Analyze all packages with the strict house lints.
+    run: dart analyze --fatal-infos
+    exec:
+      concurrency: 4
+
+  format:
+    description: Format all Dart sources (fails if anything changes in CI).
+    run: dart format --set-exit-if-changed .
+    exec:
+      concurrency: 4
+
+  test:
+    description: Run unit tests in every package that has them.
+    run: dart test
+    exec:
+      concurrency: 1
+      failFast: true
+    packageFilters:
+      dirExists: test
+
+  check:
+    description: One-shot pre-commit gate — format, analyze, test.
+    steps:
+      - format
+      - analyze
+      - test

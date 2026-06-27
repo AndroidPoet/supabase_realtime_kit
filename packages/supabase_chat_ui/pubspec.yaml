@@ -1,0 +1,25 @@
+name: supabase_chat_ui
+description: >-
+  Optional Flutter widgets for supabase_chat: a drop-in ChatView plus message
+  bubble, composer, and typing indicator building blocks.
+version: 0.1.0
+repository: https://github.com/androidpoet/supabase_realtime_kit
+issue_tracker: https://github.com/androidpoet/supabase_realtime_kit/issues
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.27.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  supabase_chat: ^0.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  very_good_analysis: ^7.0.0
+
+flutter:

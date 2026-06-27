@@ -1,0 +1,22 @@
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+pubspec.lock
+*.iml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Melos
+.melos_tool/
+
+# OS
+.DS_Store
+
+# Local Supabase / secrets
+.env
+.env.*
+!.env.example

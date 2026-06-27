@@ -1,0 +1,21 @@
+name: supabase_chat
+description: >-
+  A plug-and-play chat domain on top of supabase_realtime_kit: rooms, messages
+  with optimistic send, typing indicators, presence, and read receipts.
+version: 0.1.0
+repository: https://github.com/androidpoet/supabase_realtime_kit
+issue_tracker: https://github.com/androidpoet/supabase_realtime_kit/issues
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  meta: ^1.15.0
+  supabase: ^2.5.0
+  supabase_realtime_kit: ^0.1.0
+
+dev_dependencies:
+  test: ^1.25.0
+  very_good_analysis: ^7.0.0
