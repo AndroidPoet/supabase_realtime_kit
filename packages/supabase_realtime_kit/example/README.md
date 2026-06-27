@@ -16,11 +16,11 @@ Future<void> main() async {
     table: 'messages',
     fromJson: (row) => row,
     idOf: (row) => row['id'] as String,
-    orderBy: (a, b) =>
+    compare: (a, b) =>
         (a['created_at'] as String).compareTo(b['created_at'] as String),
   );
 
-  messages.items.listen((rows) => print('now ${rows.length} messages'));
+  messages.stream.listen((rows) => print('now ${rows.length} messages'));
   await messages.start();
 
   // Optimistic insert — shows immediately, reconciles with the server echo,
