@@ -67,7 +67,32 @@ flutter run -t lib/encrypted_two_users.dart \
 
 Requires `0003_e2ee_public_keys.sql` in addition to `0001_chat_schema.sql`.
 
-## 4 · End-to-end encryption preview
+## 4 · Two emulators — one encrypted user per device 📱📱
+
+`lib/encrypted_device.dart` runs **one user per device** so two emulators chat
+end-to-end encrypted across the network. Because the API has no open-join, the
+two devices pair with a one-time handshake:
+
+1. Launch on both devices; each shows **My ID** (tap to copy).
+2. On device **A**: paste B's ID → **① Create & invite**.
+3. On device **B**: paste A's ID → **② Join** (finds the room A just created).
+
+Then chat — the 🗄 toolbar button reveals the ciphertext Supabase stores.
+
+```bash
+# device A
+flutter run -t lib/encrypted_device.dart -d <sim-A-id> \
+  --dart-define=SUPABASE_URL=https://YOUR.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=YOUR_ANON_KEY
+# device B (second terminal)
+flutter run -t lib/encrypted_device.dart -d <sim-B-id> \
+  --dart-define=SUPABASE_URL=https://YOUR.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=YOUR_ANON_KEY
+```
+
+Requires `0003_e2ee_public_keys.sql` in addition to `0001_chat_schema.sql`.
+
+## 5 · End-to-end encryption preview
 
 `lib/preview_e2ee.dart` shows the encrypted chat view with the safety-number
 verification banner. See [`supabase_chat_e2ee`](../packages/supabase_chat_e2ee)
