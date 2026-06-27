@@ -11,6 +11,7 @@ workspace:
   - packages/supabase_chat
   - packages/supabase_chat_ui
   - example
+  - e2e
 
 dev_dependencies:
   melos: ^8.0.0

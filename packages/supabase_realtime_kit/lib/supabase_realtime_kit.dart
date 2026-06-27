@@ -5,6 +5,7 @@ library;
 
 export 'src/broadcast_hub.dart';
 export 'src/connection_state.dart';
+export 'src/live_list_state.dart';
 export 'src/live_query.dart';
 export 'src/outbox.dart';
 export 'src/presence_tracker.dart';

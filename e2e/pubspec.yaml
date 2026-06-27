@@ -1,0 +1,18 @@
+name: supabase_chat_e2e
+description: Real-instance end-to-end tests for supabase_chat against a live Supabase project.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  supabase: ^2.5.0
+  supabase_chat: ^0.1.0
+  supabase_realtime_kit: ^0.1.0
+
+dev_dependencies:
+  test: ^1.25.0
+  very_good_analysis: ^7.0.0

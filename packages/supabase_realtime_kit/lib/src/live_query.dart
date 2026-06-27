@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:supabase/supabase.dart';
+import 'package:supabase_realtime_kit/src/live_list_state.dart';
 import 'package:supabase_realtime_kit/src/realtime_kit_exception.dart';
 import 'package:supabase_realtime_kit/src/result.dart';
 import 'package:supabase_realtime_kit/src/types.dart';
@@ -88,8 +89,11 @@ class LiveQuery<T> {
   /// The realtime channel name this query subscribes on.
   final String channelName;
 
-  final Map<Object, T> _confirmed = <Object, T>{};
-  final Map<Object, T> _pending = <Object, T>{};
+  late final LiveListState<T> _state = LiveListState<T>(
+    idOf: idOf,
+    pendingKeyOf: pendingKeyOf,
+    compare: compare,
+  );
   final StreamController<List<T>> _controller =
       StreamController<List<T>>.broadcast();
 
@@ -127,12 +131,14 @@ class LiveQuery<T> {
 
   /// Merges the head of the list (newest rows) without clearing already-loaded
   /// older pages. Used to backfill changes missed while disconnected.
+  ///
+  /// Only the first page is refetched: if more than [pageSize] rows changed
+  /// during the outage, changes between the head page and the previously-loaded
+  /// tail can be missed. Call [loadInitial] for a full resync if needed.
   Future<void> _backfill() async {
     final result = await Result.guard(() async {
       final rows = await _fetchPage(0);
-      for (final row in rows) {
-        _upsertConfirmed(fromJson(row));
-      }
+      _state.addAllConfirmed(rows.map(fromJson));
       _emit();
     });
     // Backfill is best-effort; surface failures on the stream, don't throw.
@@ -144,11 +150,9 @@ class LiveQuery<T> {
   /// Fetches (or refetches) the first page, replacing confirmed state.
   Future<Result<List<T>>> loadInitial() => Result.guard(() async {
     final rows = await _fetchPage(0);
-    _confirmed.clear();
-    for (final row in rows) {
-      final item = fromJson(row);
-      _confirmed[idOf(item)] = item;
-    }
+    _state
+      ..clearConfirmed()
+      ..addAllConfirmed(rows.map(fromJson));
     _offset = rows.length;
     _hasMore = rows.length == pageSize;
     _emit();
@@ -159,12 +163,8 @@ class LiveQuery<T> {
   Future<Result<List<T>>> loadMore() => Result.guard(() async {
     if (!_hasMore) return <T>[];
     final rows = await _fetchPage(_offset);
-    final loaded = <T>[];
-    for (final row in rows) {
-      final item = fromJson(row);
-      _confirmed[idOf(item)] = item;
-      loaded.add(item);
-    }
+    final loaded = rows.map(fromJson).toList();
+    _state.addAllConfirmed(loaded);
     _offset += rows.length;
     _hasMore = rows.length == pageSize;
     _emit();
@@ -174,17 +174,15 @@ class LiveQuery<T> {
   /// Inserts an optimistic [item] that renders immediately and is replaced by
   /// its server echo. Requires [pendingKeyOf] to have been provided.
   void addPending(T item) {
-    final key = pendingKeyOf?.call(item);
+    final key = _state.addPending(item);
     assert(key != null, 'addPending requires a non-null pendingKeyOf');
-    if (key == null) return;
-    _pending[key] = item;
-    _emit();
+    if (key != null) _emit();
   }
 
   /// Removes a previously added optimistic item (e.g. after a permanent send
   /// failure) by its [pendingKey].
   void removePending(Object pendingKey) {
-    if (_pending.remove(pendingKey) != null) _emit();
+    if (_state.removePending(pendingKey)) _emit();
   }
 
   Future<List<JsonMap>> _fetchPage(int offset) async {
@@ -233,24 +231,18 @@ class LiveQuery<T> {
     switch (payload.eventType) {
       case PostgresChangeEvent.insert:
       case PostgresChangeEvent.update:
-        _upsertConfirmed(fromJson(payload.newRecord));
+        _state.upsertConfirmed(fromJson(payload.newRecord));
       case PostgresChangeEvent.delete:
         // NOTE: for a *filtered* query, Postgres only includes non-PK columns
         // in the delete payload when the table uses `REPLICA IDENTITY FULL`.
         // With the default identity, filtered deletes may not be delivered at
         // all — prefer soft-deletes (an UPDATE) when you need a filter.
-        final id = payload.oldRecord[primaryKeyColumn];
-        if (id != null) _confirmed.remove(id);
+        final Object? id = payload.oldRecord[primaryKeyColumn];
+        if (id != null) _state.removeConfirmedById(id);
       case PostgresChangeEvent.all:
         return; // never delivered for a concrete change
     }
     _emit();
-  }
-
-  void _upsertConfirmed(T item) {
-    _confirmed[idOf(item)] = item;
-    final key = pendingKeyOf?.call(item);
-    if (key != null) _pending.remove(key); // reconcile optimistic placeholder
   }
 
   void _onStatus(RealtimeSubscribeStatus status, Object? error) {
@@ -276,24 +268,7 @@ class LiveQuery<T> {
 
   void _emit() {
     if (_disposed) return;
-    final byId = <Object, T>{
-      for (final item in _confirmed.values) idOf(item): item,
-    };
-    // Overlay optimistic rows that the server has not yet echoed.
-    final confirmedKeys = pendingKeyOf == null
-        ? const <Object>{}
-        : {
-            for (final item in _confirmed.values)
-              if (pendingKeyOf!(item) case final k?) k,
-          };
-    for (final item in _pending.values) {
-      final key = pendingKeyOf?.call(item);
-      if (key != null && confirmedKeys.contains(key)) continue;
-      byId[idOf(item)] = item;
-    }
-    final merged = byId.values.toList();
-    if (compare != null) merged.sort(compare);
-    _snapshot = merged;
+    _snapshot = _state.items;
     if (!_controller.isClosed) _controller.add(items);
   }
 

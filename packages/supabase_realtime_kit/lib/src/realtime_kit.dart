@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:meta/meta.dart';
 import 'package:supabase/supabase.dart';
 import 'package:supabase_realtime_kit/src/broadcast_hub.dart';
 import 'package:supabase_realtime_kit/src/connection_state.dart';
@@ -31,12 +32,19 @@ class RealtimeKit {
   /// Wraps [client]. Optionally supply a durable [outbox]; an in-memory one is
   /// used by default. When [autoFlushOutbox] is true (the default), queued
   /// writes are retried automatically whenever the realtime socket reconnects.
-  RealtimeKit(this.client, {Outbox? outbox, this.autoFlushOutbox = true})
-    : outbox = outbox ?? InMemoryOutbox() {
+  RealtimeKit(
+    this.client, {
+    Outbox? outbox,
+    this.autoFlushOutbox = true,
+    this.maxOutboxAttempts = defaultMaxOutboxAttempts,
+  }) : outbox = outbox ?? InMemoryOutbox() {
     if (autoFlushOutbox) {
       client.realtime.onOpen(() => unawaited(flushOutbox()));
     }
   }
+
+  /// Default ceiling on outbox delivery attempts before an entry is dropped.
+  static const int defaultMaxOutboxAttempts = 8;
 
   /// The underlying Supabase client.
   final SupabaseClient client;
@@ -46,6 +54,10 @@ class RealtimeKit {
 
   /// Whether the outbox is flushed automatically on reconnect.
   final bool autoFlushOutbox;
+
+  /// Maximum delivery attempts before a permanently-failing entry is dropped
+  /// (dead-lettered) so it can't be retried forever.
+  final int maxOutboxAttempts;
 
   /// Creates a realtime, self-updating [LiveQuery] over a table slice.
   ///
@@ -148,32 +160,62 @@ class RealtimeKit {
     }
   }
 
-  /// Attempts to deliver every queued write. Successful and
-  /// already-delivered (duplicate-key) entries are removed; others have their
-  /// attempt count incremented and remain queued.
+  /// Attempts to deliver every queued write. Successful and already-delivered
+  /// (duplicate-key) entries are removed; transient failures increment the
+  /// attempt count and stay queued; entries that exceed [maxOutboxAttempts] are
+  /// dropped so a poison write can't retry forever.
   Future<void> flushOutbox() async {
     for (final entry in await outbox.pending()) {
-      try {
-        await client
-            .schema(entry.schema)
-            .from(entry.table)
-            .insert(entry.payload);
+      await deliverOutboxEntry(
+        entry,
+        outbox,
+        (e) => client.schema(e.schema).from(e.table).insert(e.payload),
+        maxAttempts: maxOutboxAttempts,
+      );
+    }
+  }
+
+  /// Delivers a single outbox [entry] via [send], applying the outbox decision
+  /// policy and mutating [outbox] accordingly. Exposed for testing the policy
+  /// without a live client.
+  @visibleForTesting
+  static Future<void> deliverOutboxEntry(
+    OutboxEntry entry,
+    Outbox outbox,
+    Future<void> Function(OutboxEntry entry) send, {
+    int maxAttempts = defaultMaxOutboxAttempts,
+  }) async {
+    try {
+      await send(entry);
+      await outbox.remove(entry.id);
+    } on PostgrestException catch (error) {
+      if (error.code == '23505') {
+        // Unique violation → a previous attempt already landed. Done.
         await outbox.remove(entry.id);
-      } on PostgrestException catch (error) {
-        if (error.code == '23505') {
-          // Unique violation → a previous attempt already landed. Done.
-          await outbox.remove(entry.id);
-        } else {
-          await outbox.update(entry.incrementAttempts());
-        }
-      } on Object catch (_) {
-        await outbox.update(entry.incrementAttempts());
+      } else {
+        await _failOrDrop(entry, outbox, maxAttempts);
       }
+    } on Object catch (_) {
+      await _failOrDrop(entry, outbox, maxAttempts);
+    }
+  }
+
+  static Future<void> _failOrDrop(
+    OutboxEntry entry,
+    Outbox outbox,
+    int maxAttempts,
+  ) async {
+    if (entry.attempts + 1 >= maxAttempts) {
+      // Dead-letter: drop the poison entry rather than retry it forever.
+      await outbox.remove(entry.id);
+    } else {
+      await outbox.update(entry.incrementAttempts());
     }
   }
 
   StreamController<KitConnectionState>? _connectionController;
   KitConnectionState _lastConnState = KitConnectionState.disconnected;
+  bool _disposed = false;
 
   /// A broadcast stream of high-level [KitConnectionState] transitions derived
   /// from the realtime socket. New listeners immediately receive the current
@@ -188,7 +230,7 @@ class RealtimeKit {
   }
 
   void _ensureConnectionWiring() {
-    if (_connectionController != null) return;
+    if (_disposed || _connectionController != null) return;
     final controller = StreamController<KitConnectionState>.broadcast();
     _connectionController = controller;
 
@@ -209,6 +251,8 @@ class RealtimeKit {
   /// Releases resources owned by the kit (the connection-state stream).
   /// Does not close the underlying [SupabaseClient].
   Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
     await _connectionController?.close();
     _connectionController = null;
   }
