@@ -24,9 +24,13 @@ import 'package:test/test.dart';
 void main() {
   final url = Platform.environment['SUPABASE_URL'];
   final anonKey = Platform.environment['SUPABASE_ANON_KEY'];
-  final skip = (url == null || anonKey == null)
-      ? 'Set SUPABASE_URL and SUPABASE_ANON_KEY to run e2e tests'
-      : false;
+  // CI passes unset secrets as empty strings, so treat blank as "not set".
+  final hasCreds =
+      (url != null && url.isNotEmpty) &&
+      (anonKey != null && anonKey.isNotEmpty);
+  final skip = hasCreds
+      ? false
+      : 'Set SUPABASE_URL and SUPABASE_ANON_KEY to run e2e tests';
 
   group('chat e2e (two live clients)', () {
     late SupabaseClient clientA;
