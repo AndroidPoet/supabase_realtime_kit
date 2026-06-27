@@ -1,5 +1,11 @@
 # supabase_realtime_kit
 
+[![supabase_realtime_kit](https://img.shields.io/pub/v/supabase_realtime_kit.svg?label=supabase_realtime_kit&color=blue)](https://pub.dev/packages/supabase_realtime_kit)
+[![supabase_chat](https://img.shields.io/pub/v/supabase_chat.svg?label=supabase_chat&color=blue)](https://pub.dev/packages/supabase_chat)
+[![supabase_chat_widgets](https://img.shields.io/pub/v/supabase_chat_widgets.svg?label=supabase_chat_widgets&color=blue)](https://pub.dev/packages/supabase_chat_widgets)
+[![supabase_chat_seal](https://img.shields.io/pub/v/supabase_chat_seal.svg?label=supabase_chat_seal&color=blue)](https://pub.dev/packages/supabase_chat_seal)
+[![supabase_chat_e2ee](https://img.shields.io/pub/v/supabase_chat_e2ee.svg?label=supabase_chat_e2ee&color=8A2BE2)](https://pub.dev/packages/supabase_chat_e2ee)
+
 **Realtime, done once — cleanly.** A monorepo of plug-and-play realtime
 libraries for **Flutter & Dart** on top of [Supabase](https://supabase.com).
 
