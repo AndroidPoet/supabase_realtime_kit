@@ -20,3 +20,9 @@ pubspec.lock
 .env
 .env.*
 !.env.example
+
+# Supabase CLI local state (never commit project linkage/creds)
+supabase/.temp/
+supabase/.branches/
+supabase/.env
+**/.env

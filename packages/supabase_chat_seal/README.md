@@ -122,6 +122,89 @@ less safe), construct the manager with `requireVerified: false`.
   re-derive it to read their own history; no plaintext cache is required for
   correctness.
 
+## Device migration & key backup
+
+The user's **identity private key is the "master key"** — there is no
+server-side master key to recover from (that is the point of E2EE: the server
+only ever holds public keys and ciphertext). What happens when a user gets a new
+phone depends entirely on whether **you** carried that key over.
+
+- **If you migrate the key** → the new device keeps the same public key, so
+  **safety numbers stay stable, peers stay verified, and old ciphertext is still
+  decryptable.** Seamless.
+- **If you don't** (just call `SealIdentity.generate()` again) → a new identity
+  is published, every peer sees the safety number change and gets an
+  `IdentityChangedException` (the "security code changed" warning), and **all
+  prior ciphertext on the server becomes permanently undecryptable.** Signal and
+  WhatsApp behave the same way on an un-backed-up reinstall.
+
+The migration primitives are built in (`SealIdentity.exportPrivateKey` /
+`SealIdentity.restore`). This package bundles **no** storage or backup — that is
+a product decision left to you. The recommended pattern is a **passphrase-
+encrypted backup**: derive a key from a user passphrase and wrap the private key
+with it, then store the blob anywhere (even server-side — it is opaque without
+the passphrase).
+
+```dart
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:cryptography/cryptography.dart';
+import 'package:supabase_chat_seal/supabase_chat_seal.dart';
+
+// --- Back up (old device) ---
+final raw = await identity.exportPrivateKey();            // 32 bytes
+final kdf = Pbkdf2(macAlgorithm: Hmac.sha256(), iterations: 200000, bits: 256);
+final wrapKey = await kdf.deriveKeyFromPassword(
+  password: userPassphrase, nonce: salt /* 16 random bytes you store */);
+final box = await AesGcm.with256bits().encrypt(raw, secretKey: wrapKey);
+final blob = base64.encode([...box.nonce, ...box.cipherText, ...box.mac.bytes]);
+// store `blob`, `salt`, and the public key wherever you like.
+
+// --- Restore (new device) ---
+final identity = await SealIdentity.restore(
+  privateKey: recoveredRawKey,                            // unwrap `blob` with the passphrase
+  publicKey: storedPublicKey,
+);
+```
+
+## Forward secrecy & dynamic keys (what you can and can't get)
+
+A common question: *can the key be dynamic, like WhatsApp?* The honest layering:
+
+- You want a **stable identity key** (so safety numbers and verification survive)
+  **+ dynamic message keys** (so a leaked key can't expose the whole history).
+  Rotating the *identity* key itself only breaks everyone's verification.
+- WhatsApp and Signal get dynamic message keys from the **Double Ratchet** — a
+  fresh key per message, old keys deleted (forward secrecy + post-compromise
+  security). That is what [`supabase_chat_e2ee`](../supabase_chat_e2ee) (GPL)
+  provides via `libsignal`.
+- **This package uses a static pairwise key — no ratchet, no forward secrecy.**
+  The Double Ratchet is an algorithm, not a library, so an MIT clean-room
+  implementation on top of the primitives here is *possible*, but shipping
+  unaudited custom crypto is a deliberate non-goal for now.
+
+**If you need WhatsApp-grade forward secrecy, use `supabase_chat_e2ee`.** If
+permissive licensing matters more than forward secrecy, this package is the
+right trade-off and the threat model above (untrusted server, MITM, key-swap)
+still holds.
+
+## What E2EE can't do (any package, not just this one)
+
+These are fundamental to "the server only sees ciphertext" — forward secrecy or
+not, no E2EE design escapes them:
+
+| Want | Possible? | Why / what to do instead |
+|---|---|---|
+| Server-side search of message content | ❌ | the server can't index what it can't read |
+| Server reading / moderating content | ❌ | plaintext never reaches the server |
+| New device pulls full history from server | ⚠️ only with key migration | otherwise old ciphertext is undecryptable; use the encrypted backup above |
+| **Local** chat export | ✅ | export the **decrypted plaintext your client already holds** (keep a local store), exactly like WhatsApp's "Export chat" |
+| Metadata privacy (who/when/membership) | ❌ | only message bodies are encrypted |
+
+The mental model: **E2EE protects keys; history/export features must live on the
+plaintext side** — local device storage or an explicitly user-keyed encrypted
+backup. Anything that needs the *server* to read content is off the table.
+
 ## Testing
 
 `dart test` runs a full two-party round-trip (ECDH handshake, multi-turn

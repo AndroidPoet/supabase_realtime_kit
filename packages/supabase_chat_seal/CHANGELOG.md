@@ -16,3 +16,6 @@
 - Safety numbers + strict `requireVerified` mode (MITM protection) and
   `IdentityChangedException` (key-change rejection).
 - SQL migration for the `e2ee_public_keys` directory.
+- Docs: device migration & passphrase-encrypted key-backup recipe, the
+  forward-secrecy / dynamic-key trade-off vs `supabase_chat_e2ee`, and a
+  "what E2EE can't do" limits matrix (server-side search/restore, local export).
