@@ -1,4 +1,32 @@
 import 'package:meta/meta.dart';
+import 'package:supabase_chat/src/models/attachment.dart';
+
+/// The kind of content a [Message] carries.
+enum MessageType {
+  /// A plain text message.
+  text,
+
+  /// An image attachment (optionally with a caption in [Message.content]).
+  image,
+
+  /// A video attachment.
+  video,
+
+  /// An audio clip / voice note.
+  audio,
+
+  /// A generic file/document.
+  file,
+
+  /// A system event (e.g. "X joined"), not authored by a user.
+  system;
+
+  /// Parses a type string from the database, defaulting to [text].
+  static MessageType fromName(String? name) => MessageType.values.firstWhere(
+    (type) => type.name == name,
+    orElse: () => MessageType.text,
+  );
+}
 
 /// A single chat message.
 ///
@@ -13,8 +41,10 @@ class Message {
     required this.roomId,
     required this.senderId,
     required this.createdAt,
+    this.type = MessageType.text,
     this.content,
     this.attachments = const [],
+    this.replyToId,
     this.clientId,
     this.editedAt,
     this.deletedAt,
@@ -26,11 +56,13 @@ class Message {
     id: json['id'] as String,
     roomId: json['room_id'] as String,
     senderId: json['sender_id'] as String,
+    type: MessageType.fromName(json['type'] as String?),
     content: json['content'] as String?,
     attachments: [
       for (final a in (json['attachments'] as List? ?? const []))
-        Map<String, dynamic>.from(a as Map),
+        Attachment.fromJson(Map<String, dynamic>.from(a as Map)),
     ],
+    replyToId: json['reply_to'] as String?,
     clientId: json['client_id'] as String?,
     createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
     editedAt: json['edited_at'] == null
@@ -50,11 +82,17 @@ class Message {
   /// The author's user id.
   final String senderId;
 
-  /// Text body, if any.
+  /// What kind of content this message carries.
+  final MessageType type;
+
+  /// Text body / caption, if any.
   final String? content;
 
-  /// Attachment descriptors (e.g. storage paths + metadata).
-  final List<Map<String, dynamic>> attachments;
+  /// Attachment descriptors.
+  final List<Attachment> attachments;
+
+  /// The id of the message this one replies to, if any.
+  final String? replyToId;
 
   /// Client-generated idempotency / reconciliation key.
   final String? clientId;
@@ -74,12 +112,20 @@ class Message {
   /// Whether the message has been soft-deleted.
   bool get isDeleted => deletedAt != null;
 
+  /// Whether the message has been edited.
+  bool get isEdited => editedAt != null;
+
+  /// Whether this message quotes another.
+  bool get isReply => replyToId != null;
+
   /// The insert payload for `messages` (server-managed fields omitted).
   Map<String, dynamic> toInsert() => {
     'room_id': roomId,
     'sender_id': senderId,
+    'type': type.name,
     if (content != null) 'content': content,
-    'attachments': attachments,
+    'attachments': [for (final a in attachments) a.toJson()],
+    if (replyToId != null) 'reply_to': replyToId,
     if (clientId != null) 'client_id': clientId,
   };
 
@@ -88,8 +134,10 @@ class Message {
     id: id ?? this.id,
     roomId: roomId,
     senderId: senderId,
+    type: type,
     content: content,
     attachments: attachments,
+    replyToId: replyToId,
     clientId: clientId,
     createdAt: createdAt,
     editedAt: editedAt,
@@ -104,5 +152,5 @@ class Message {
   int get hashCode => id.hashCode;
 
   @override
-  String toString() => 'Message($id, pending: $pending)';
+  String toString() => 'Message($id, $type, pending: $pending)';
 }

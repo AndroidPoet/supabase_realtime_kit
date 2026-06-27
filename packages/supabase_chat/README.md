@@ -38,13 +38,24 @@ await room.loadMore();                                   // older history
 await room.leave();                                      // releases channels
 ```
 
-## What you get for free
+## WhatsApp-grade features
 
-- **Optimistic send** — messages appear instantly and reconcile with the server echo (no duplicates), via `client_id` idempotency.
-- **Offline outbox** — failed sends queue and retry on reconnect.
-- **Typing** over realtime broadcast (ephemeral, auto-expiring; no DB writes).
-- **Presence** — who's in the room right now.
-- **RLS-enforced** — membership is the security boundary; see the migration.
+| Feature | API |
+|---|---|
+| Optimistic send (no dupes, `client_id` reconcile) | `room.send(text: …)` |
+| Offline outbox + retry on reconnect | automatic |
+| Replies / quotes | `room.reply(toMessageId: …, text: …)` |
+| Edit message | `room.editMessage(id, newText)` |
+| Soft-delete ("message deleted") | `room.deleteMessage(id)` |
+| Emoji reactions | `room.react(id, '👍')` / `removeReaction` · `room.reactionsByMessage` |
+| Media (image/video/audio/file) | `chat.uploadAttachment(...)` → `room.sendMedia(attachments: …)` |
+| Typing indicators (auto-expiring) | `room.setTyping(typing: true)` · `room.typingUserIds` |
+| Presence (who's online) | `room.presentUsers` |
+| Read receipts + unread counts | `room.markRead()` · `room.unreadCount` |
+| Pagination (infinite scroll) | `room.loadMore()` |
+| 1:1 direct chats & groups | `chat.directRoom(userId)` / `chat.createRoom(...)` |
+
+All ephemeral signals (typing/presence) ride realtime — no DB writes. Membership-based **RLS is the security boundary**; see the migration. Media uses a Storage bucket with room-scoped policies.
 
 ## License
 

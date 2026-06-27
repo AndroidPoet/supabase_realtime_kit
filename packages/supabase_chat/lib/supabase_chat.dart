@@ -4,7 +4,10 @@
 library;
 
 export 'src/chat_room.dart';
+export 'src/models/attachment.dart';
 export 'src/models/chat_member.dart';
 export 'src/models/message.dart';
+export 'src/models/reaction.dart';
 export 'src/models/room.dart';
 export 'src/supabase_chat.dart';
+export 'src/typing_tracker.dart';

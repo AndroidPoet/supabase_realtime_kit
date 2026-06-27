@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:supabase/supabase.dart';
 import 'package:supabase_chat/src/chat_room.dart';
+import 'package:supabase_chat/src/models/attachment.dart';
 import 'package:supabase_chat/src/models/room.dart';
 import 'package:supabase_realtime_kit/supabase_realtime_kit.dart';
 
@@ -14,12 +17,19 @@ import 'package:supabase_realtime_kit/supabase_realtime_kit.dart';
 /// ```
 class SupabaseChat {
   /// Creates a chat client over [client]. Pass a durable [outbox] for offline
-  /// send persistence.
-  SupabaseChat(SupabaseClient client, {Outbox? outbox})
-    : kit = RealtimeKit(client, outbox: outbox);
+  /// send persistence and override [attachmentsBucket] to use a different
+  /// Storage bucket for media.
+  SupabaseChat(
+    SupabaseClient client, {
+    Outbox? outbox,
+    this.attachmentsBucket = 'chat-attachments',
+  }) : kit = RealtimeKit(client, outbox: outbox);
 
   /// The underlying realtime kit (escape hatch for advanced use).
   final RealtimeKit kit;
+
+  /// The Storage bucket media attachments are uploaded to.
+  final String attachmentsBucket;
 
   SupabaseClient get _client => kit.client;
 
@@ -73,6 +83,38 @@ class SupabaseChat {
     ];
     await _client.from('room_members').insert(memberRows);
     return room;
+  });
+
+  /// Creates (or returns a fresh handle for) a 1:1 direct room with
+  /// [otherUserId]. Convenience over [createRoom] with `isDirect: true`.
+  Future<Result<Room>> directRoom(String otherUserId) =>
+      createRoom(isDirect: true, memberIds: [otherUserId]);
+
+  /// Uploads [bytes] as a chat attachment under `roomId/` in the
+  /// [attachmentsBucket] and returns its [Attachment] descriptor (with a public
+  /// URL). Pass the result to `ChatRoom.sendMedia`.
+  Future<Result<Attachment>> uploadAttachment({
+    required String roomId,
+    required String fileName,
+    required Uint8List bytes,
+    String? contentType,
+  }) => Result.guard(() async {
+    final path = '$roomId/${DateTime.now().microsecondsSinceEpoch}-$fileName';
+    await _client.storage
+        .from(attachmentsBucket)
+        .uploadBinary(
+          path,
+          bytes,
+          fileOptions: FileOptions(contentType: contentType),
+        );
+    final url = _client.storage.from(attachmentsBucket).getPublicUrl(path);
+    return Attachment(
+      path: path,
+      url: url,
+      name: fileName,
+      mimeType: contentType,
+      size: bytes.length,
+    );
   });
 
   /// Lists rooms visible to the signed-in user (RLS scopes this to rooms they

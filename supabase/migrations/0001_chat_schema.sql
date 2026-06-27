@@ -23,10 +23,12 @@ create table if not exists public.rooms (
 );
 
 create table if not exists public.room_members (
-  room_id   uuid not null references public.rooms (id) on delete cascade,
-  user_id   uuid not null references auth.users (id) on delete cascade,
-  role      text not null default 'member' check (role in ('owner', 'admin', 'member')),
-  joined_at timestamptz not null default now(),
+  room_id      uuid not null references public.rooms (id) on delete cascade,
+  user_id      uuid not null references auth.users (id) on delete cascade,
+  role         text not null default 'member' check (role in ('owner', 'admin', 'member')),
+  joined_at    timestamptz not null default now(),
+  -- Advances when the member reads the room; drives unread counts.
+  last_read_at timestamptz,
   primary key (room_id, user_id)
 );
 
@@ -34,13 +36,28 @@ create table if not exists public.messages (
   id          uuid primary key default gen_random_uuid(),
   room_id     uuid not null references public.rooms (id) on delete cascade,
   sender_id   uuid not null references auth.users (id) on delete cascade,
+  type        text not null default 'text'
+                check (type in ('text', 'image', 'video', 'audio', 'file', 'system')),
   content     text,
   attachments jsonb not null default '[]'::jsonb,
+  -- Quoted/replied-to message (nullable; cleared if the parent is removed).
+  reply_to    uuid references public.messages (id) on delete set null,
   -- Client-generated idempotency key for optimistic send reconciliation.
   client_id   text,
   created_at  timestamptz not null default now(),
   edited_at   timestamptz,
   deleted_at  timestamptz
+);
+
+create table if not exists public.message_reactions (
+  id         uuid primary key default gen_random_uuid(),
+  -- Denormalized so the client can filter realtime reactions by room.
+  room_id    uuid not null references public.rooms (id) on delete cascade,
+  message_id uuid not null references public.messages (id) on delete cascade,
+  user_id    uuid not null references auth.users (id) on delete cascade,
+  emoji      text not null,
+  created_at timestamptz not null default now(),
+  unique (message_id, user_id, emoji)
 );
 
 create table if not exists public.message_receipts (
@@ -58,6 +75,10 @@ create index if not exists room_members_user_idx
 -- Idempotency: at most one server row per (room, client_id).
 create unique index if not exists messages_room_client_idx
   on public.messages (room_id, client_id) where client_id is not null;
+create index if not exists reactions_room_idx
+  on public.message_reactions (room_id);
+create index if not exists reactions_message_idx
+  on public.message_reactions (message_id);
 
 -- ───────────────────── membership helper (SECURITY DEFINER) ─────────────────
 -- Used by policies to avoid recursive RLS evaluation on room_members.
@@ -75,10 +96,11 @@ as $$
 $$;
 
 -- ──────────────────────────── enable RLS ────────────────────────────────────
-alter table public.rooms            enable row level security;
-alter table public.room_members     enable row level security;
-alter table public.messages         enable row level security;
-alter table public.message_receipts enable row level security;
+alter table public.rooms             enable row level security;
+alter table public.room_members      enable row level security;
+alter table public.messages          enable row level security;
+alter table public.message_receipts  enable row level security;
+alter table public.message_reactions enable row level security;
 
 -- rooms ----------------------------------------------------------------------
 drop policy if exists rooms_select on public.rooms;
@@ -133,11 +155,25 @@ drop policy if exists receipts_upsert on public.message_receipts;
 create policy receipts_upsert on public.message_receipts
   for insert with check (user_id = auth.uid());
 
+-- message_reactions ----------------------------------------------------------
+drop policy if exists reactions_select on public.message_reactions;
+create policy reactions_select on public.message_reactions
+  for select using (public.is_room_member(room_id));
+
+drop policy if exists reactions_insert on public.message_reactions;
+create policy reactions_insert on public.message_reactions
+  for insert with check (user_id = auth.uid() and public.is_room_member(room_id));
+
+drop policy if exists reactions_delete on public.message_reactions;
+create policy reactions_delete on public.message_reactions
+  for delete using (user_id = auth.uid());
+
 -- ─────────────────────── realtime publication ──────────────────────────────
 -- postgres_changes only streams tables added to supabase_realtime.
 alter publication supabase_realtime add table public.messages;
 alter publication supabase_realtime add table public.message_receipts;
 alter publication supabase_realtime add table public.room_members;
+alter publication supabase_realtime add table public.message_reactions;
 
 -- NOTE on deletes: this app uses soft-deletes (an UPDATE setting deleted_at),
 -- which stream fine. If you instead need *hard* DELETE events to be delivered
@@ -145,3 +181,29 @@ alter publication supabase_realtime add table public.room_members;
 -- old row (incl. the filter column) is included in the WAL payload:
 --   alter table public.messages replica identity full;
 -- It increases WAL volume, so it's left off by default.
+
+-- ──────────────────── storage bucket for attachments ───────────────────────
+-- Object key convention is `<room_id>/<file>`, so the first path segment scopes
+-- access to room members. Public bucket → getPublicUrl works for display; use a
+-- private bucket + signed URLs instead if attachments must not be world-readable.
+insert into storage.buckets (id, name, public)
+values ('chat-attachments', 'chat-attachments', true)
+on conflict (id) do nothing;
+
+drop policy if exists chat_attachments_read on storage.objects;
+create policy chat_attachments_read on storage.objects
+  for select using (
+    bucket_id = 'chat-attachments'
+    and public.is_room_member(((storage.foldername(name))[1])::uuid)
+  );
+
+drop policy if exists chat_attachments_write on storage.objects;
+create policy chat_attachments_write on storage.objects
+  for insert with check (
+    bucket_id = 'chat-attachments'
+    and public.is_room_member(((storage.foldername(name))[1])::uuid)
+  );
+
+drop policy if exists chat_attachments_delete on storage.objects;
+create policy chat_attachments_delete on storage.objects
+  for delete using (bucket_id = 'chat-attachments' and owner = auth.uid());
