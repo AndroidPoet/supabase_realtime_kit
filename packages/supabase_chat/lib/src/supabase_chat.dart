@@ -76,10 +76,12 @@ class SupabaseChat {
         .single();
     final room = Room.fromJson(row);
 
+    // Every row must carry the same keys: PostgREST rejects a bulk insert
+    // whose objects have differing key sets (PGRST102).
     final memberRows = <Map<String, dynamic>>[
       {'room_id': room.id, 'user_id': userId, 'role': 'owner'},
       for (final id in memberIds)
-        if (id != userId) {'room_id': room.id, 'user_id': id},
+        if (id != userId) {'room_id': room.id, 'user_id': id, 'role': 'member'},
     ];
     await _client.from('room_members').insert(memberRows);
     return room;
