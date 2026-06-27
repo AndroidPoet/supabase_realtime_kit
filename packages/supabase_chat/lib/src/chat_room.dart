@@ -143,6 +143,7 @@ class ChatRoom {
     String? replyToId,
     List<Attachment> attachments = const [],
     MessageType type = MessageType.text,
+    Map<String, dynamic> extra = const <String, dynamic>{},
   }) async {
     final clientId = _newClientId();
     final optimistic = Message(
@@ -156,6 +157,7 @@ class ChatRoom {
       clientId: clientId,
       createdAt: DateTime.now().toUtc(),
       pending: true,
+      extra: extra,
     );
     _messages.addPending(optimistic);
 

@@ -1,27 +1,24 @@
-name: supabase_chat_ui
+name: supabase_chat_e2ee
 description: >-
-  Optional Flutter widgets for supabase_chat: a drop-in ChatView plus message
-  bubble, composer, and typing indicator building blocks.
+  Opt-in end-to-end encryption for supabase_chat using the Signal Protocol
+  (libsignal_protocol_dart): prekey distribution over Supabase and an encrypted
+  room decorator. The server only ever sees ciphertext.
 version: 0.1.0
 repository: https://github.com/androidpoet/supabase_realtime_kit
 issue_tracker: https://github.com/androidpoet/supabase_realtime_kit/issues
 
 environment:
   sdk: ^3.10.0
-  flutter: ">=3.27.0"
 
 resolution: workspace
 
 dependencies:
-  flutter:
-    sdk: flutter
+  libsignal_protocol_dart: ^0.8.0
+  meta: ^1.15.0
+  supabase: ^2.5.0
   supabase_chat: ^0.1.0
-  supabase_chat_e2ee: ^0.1.0
   supabase_realtime_kit: ^0.1.0
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
+  test: ^1.25.0
   very_good_analysis: ^7.0.0
-
-flutter:
