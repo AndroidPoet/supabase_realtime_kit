@@ -13,6 +13,7 @@ dependencies:
   flutter:
     sdk: flutter
   supabase_chat: ^0.1.0
+  supabase_chat_e2ee: ^0.1.0
   supabase_chat_ui: ^0.1.0
   supabase_flutter: ^2.5.0
 

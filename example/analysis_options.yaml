@@ -1,0 +1,7 @@
+# Matches the workspace house standard (very_good_analysis is a dev dependency).
+include: package:very_good_analysis/analysis_options.yaml
+
+linter:
+  rules:
+    # The example app is not a published library.
+    public_member_api_docs: false

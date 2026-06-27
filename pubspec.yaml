@@ -10,6 +10,7 @@ workspace:
   - packages/supabase_realtime_kit
   - packages/supabase_chat
   - packages/supabase_chat_ui
+  - packages/supabase_chat_e2ee
   - example
   - e2e
 

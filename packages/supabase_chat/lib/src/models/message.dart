@@ -49,6 +49,7 @@ class Message {
     this.editedAt,
     this.deletedAt,
     this.pending = false,
+    this.extra = const <String, dynamic>{},
   });
 
   /// Builds a [Message] from a `messages` row.
@@ -71,6 +72,10 @@ class Message {
     deletedAt: json['deleted_at'] == null
         ? null
         : DateTime.parse(json['deleted_at'] as String).toUtc(),
+    extra: {
+      if (json['encrypted'] != null)
+        'encrypted': Map<String, dynamic>.from(json['encrypted'] as Map),
+    },
   );
 
   /// Server primary key (or a temporary `tmp:` id while [pending]).
@@ -109,6 +114,11 @@ class Message {
   /// Whether this is an optimistic message awaiting its server echo.
   final bool pending;
 
+  /// Extra, non-core columns carried verbatim to/from the row (e.g. the
+  /// `encrypted` payload added by `supabase_chat_e2ee`). Keeps the core schema
+  /// agnostic: anything here is merged into the insert and read back as-is.
+  final Map<String, dynamic> extra;
+
   /// Whether the message has been soft-deleted.
   bool get isDeleted => deletedAt != null;
 
@@ -127,6 +137,7 @@ class Message {
     'attachments': [for (final a in attachments) a.toJson()],
     if (replyToId != null) 'reply_to': replyToId,
     if (clientId != null) 'client_id': clientId,
+    ...extra,
   };
 
   /// Returns a copy with selected fields replaced.
@@ -143,6 +154,7 @@ class Message {
     editedAt: editedAt,
     deletedAt: deletedAt,
     pending: pending ?? this.pending,
+    extra: extra,
   );
 
   @override
