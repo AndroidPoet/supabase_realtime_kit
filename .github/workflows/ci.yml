@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.38.5
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Resolve workspace
+        run: flutter pub get
+
+      - name: Format check
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze
+        run: dart analyze
+
+      - name: Test — core
+        run: dart test
+        working-directory: packages/supabase_realtime_kit
+
+      - name: Test — chat
+        run: dart test
+        working-directory: packages/supabase_chat
+
+      # E2E auto-skips unless the secrets are configured on the repo.
+      - name: E2E (live, gated on secrets)
+        run: dart test
+        working-directory: e2e
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
