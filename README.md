@@ -32,15 +32,15 @@ while each client renders the decrypted text.
 
 ## The packages
 
-| Package | What it is | Layer |
-|---|---|---|
-| [`supabase_realtime_kit`](packages/supabase_realtime_kit) | **Pure-Dart core.** Live queries with optimistic merge, presence, broadcast, reconnect reconciliation, and a pluggable offline outbox. | Foundation |
-| [`supabase_chat`](packages/supabase_chat) | **Chat domain** on the core: rooms, messages, typing, presence, reactions, replies, edits, media, read receipts. | Domain |
-| [`supabase_chat_widgets`](packages/supabase_chat_widgets) | **Optional Flutter widgets**: a drop-in `ChatView` + building blocks (`MessageBubble`, `MessageComposer`, `TypingIndicator`). | UI |
-| [`supabase_chat_e2ee`](packages/supabase_chat_e2ee) | **Opt-in E2EE — Signal Protocol** (forward secrecy). The server stores only ciphertext. **GPL-3.0** (open-source apps). | Security |
-| [`supabase_chat_seal`](packages/supabase_chat_seal) | **Opt-in E2EE — ECDH + AES-GCM** sealed box. Same verified-E2EE API, **MIT** licensed → **safe for closed-source apps** (no forward secrecy). | Security |
-| [`example/`](example) | A runnable Flutter chat app wiring it all together. | — |
-| [`e2e/`](e2e) | Real-instance end-to-end tests against a live Supabase project. | — |
+| Package | pub.dev | What it is | Layer |
+|---|---|---|---|
+| [`supabase_realtime_kit`](packages/supabase_realtime_kit) | [![pub](https://img.shields.io/pub/v/supabase_realtime_kit.svg)](https://pub.dev/packages/supabase_realtime_kit) | **Pure-Dart core.** Live queries with optimistic merge, presence, broadcast, reconnect reconciliation, and a pluggable offline outbox. | Foundation |
+| [`supabase_chat`](packages/supabase_chat) | [![pub](https://img.shields.io/pub/v/supabase_chat.svg)](https://pub.dev/packages/supabase_chat) | **Chat domain** on the core: rooms, messages, typing, presence, reactions, replies, edits, media, read receipts. | Domain |
+| [`supabase_chat_widgets`](packages/supabase_chat_widgets) | [![pub](https://img.shields.io/pub/v/supabase_chat_widgets.svg)](https://pub.dev/packages/supabase_chat_widgets) | **Optional Flutter widgets**: a drop-in `ChatView` + building blocks (`MessageBubble`, `MessageComposer`, `TypingIndicator`). | UI |
+| [`supabase_chat_e2ee`](packages/supabase_chat_e2ee) | [![pub](https://img.shields.io/pub/v/supabase_chat_e2ee.svg)](https://pub.dev/packages/supabase_chat_e2ee) | **Opt-in E2EE — Signal Protocol** (forward secrecy). The server stores only ciphertext. **GPL-3.0** (open-source apps). | Security |
+| [`supabase_chat_seal`](packages/supabase_chat_seal) | [![pub](https://img.shields.io/pub/v/supabase_chat_seal.svg)](https://pub.dev/packages/supabase_chat_seal) | **Opt-in E2EE — ECDH + AES-GCM** sealed box. Same verified-E2EE API, **MIT** licensed → **safe for closed-source apps** (no forward secrecy). | Security |
+| [`example/`](example) | — | A runnable Flutter chat app wiring it all together. | — |
+| [`e2e/`](e2e) | — | Real-instance end-to-end tests against a live Supabase project. | — |
 
 The dependency arrow only ever points **down**: `ui`, `e2ee`, and `seal` build
 on `chat`, which builds on the core. The core knows nothing about chat — live

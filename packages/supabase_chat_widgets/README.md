@@ -1,5 +1,7 @@
 # supabase_chat_widgets
 
+[![pub package](https://img.shields.io/pub/v/supabase_chat_widgets.svg)](https://pub.dev/packages/supabase_chat_widgets) [![pub points](https://img.shields.io/pub/points/supabase_chat_widgets.svg)](https://pub.dev/packages/supabase_chat_widgets/score)
+
 Optional Flutter widgets for [`supabase_chat`](../supabase_chat). Drop in a
 complete chat screen with one widget, or compose your own UI from the same
 building blocks. Nothing here is required — `supabase_chat` is headless and

@@ -1,5 +1,7 @@
 # supabase_chat_seal
 
+[![pub package](https://img.shields.io/pub/v/supabase_chat_seal.svg)](https://pub.dev/packages/supabase_chat_seal) [![pub points](https://img.shields.io/pub/points/supabase_chat_seal.svg)](https://pub.dev/packages/supabase_chat_seal/score)
+
 **Permissive (MIT) end-to-end encryption** for [`supabase_chat`](../supabase_chat) —
 a sealed box over **X25519 ECDH → HKDF-SHA256 → AES-256-GCM**. The Supabase
 server stores **only ciphertext**; plaintext never leaves the device.

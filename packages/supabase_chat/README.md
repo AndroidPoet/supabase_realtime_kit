@@ -1,5 +1,7 @@
 # supabase_chat
 
+[![pub package](https://img.shields.io/pub/v/supabase_chat.svg)](https://pub.dev/packages/supabase_chat) [![pub points](https://img.shields.io/pub/points/supabase_chat.svg)](https://pub.dev/packages/supabase_chat/score)
+
 A plug-and-play chat domain on top of [`supabase_realtime_kit`](../supabase_realtime_kit). Rooms, messages with optimistic send, typing indicators, presence, and read receipts — over Supabase Postgres + Realtime.
 
 ## Setup

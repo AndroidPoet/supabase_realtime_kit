@@ -1,5 +1,7 @@
 # supabase_chat_e2ee
 
+[![pub package](https://img.shields.io/pub/v/supabase_chat_e2ee.svg)](https://pub.dev/packages/supabase_chat_e2ee) [![pub points](https://img.shields.io/pub/points/supabase_chat_e2ee.svg)](https://pub.dev/packages/supabase_chat_e2ee/score)
+
 Opt-in **end-to-end encryption** for [`supabase_chat`](../supabase_chat),
 built on the [Signal Protocol](https://signal.org/docs/) via
 [`libsignal_protocol_dart`](https://pub.dev/packages/libsignal_protocol_dart).

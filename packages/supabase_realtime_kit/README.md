@@ -1,5 +1,7 @@
 # supabase_realtime_kit
 
+[![pub package](https://img.shields.io/pub/v/supabase_realtime_kit.svg)](https://pub.dev/packages/supabase_realtime_kit) [![pub points](https://img.shields.io/pub/points/supabase_realtime_kit.svg)](https://pub.dev/packages/supabase_realtime_kit/score)
+
 Headless, plug-and-play realtime primitives on top of the [Supabase](https://pub.dev/packages/supabase) SDK. Pure Dart — use it from Flutter, a Dart server, or a CLI.
 
 It handles the three things people get wrong wiring Supabase realtime by hand:
