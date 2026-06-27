@@ -36,7 +36,7 @@ while each client renders the decrypted text.
 |---|---|---|
 | [`supabase_realtime_kit`](packages/supabase_realtime_kit) | **Pure-Dart core.** Live queries with optimistic merge, presence, broadcast, reconnect reconciliation, and a pluggable offline outbox. | Foundation |
 | [`supabase_chat`](packages/supabase_chat) | **Chat domain** on the core: rooms, messages, typing, presence, reactions, replies, edits, media, read receipts. | Domain |
-| [`supabase_chat_ui`](packages/supabase_chat_ui) | **Optional Flutter widgets**: a drop-in `ChatView` + building blocks (`MessageBubble`, `MessageComposer`, `TypingIndicator`). | UI |
+| [`supabase_chat_widgets`](packages/supabase_chat_widgets) | **Optional Flutter widgets**: a drop-in `ChatView` + building blocks (`MessageBubble`, `MessageComposer`, `TypingIndicator`). | UI |
 | [`supabase_chat_e2ee`](packages/supabase_chat_e2ee) | **Opt-in E2EE — Signal Protocol** (forward secrecy). The server stores only ciphertext. **GPL-3.0** (open-source apps). | Security |
 | [`supabase_chat_seal`](packages/supabase_chat_seal) | **Opt-in E2EE — ECDH + AES-GCM** sealed box. Same verified-E2EE API, **MIT** licensed → **safe for closed-source apps** (no forward secrecy). | Security |
 | [`example/`](example) | A runnable Flutter chat app wiring it all together. | — |
@@ -149,7 +149,7 @@ await room.loadMore();                       // infinite-scroll history
 ### 3 · The UI — a screen in one widget
 
 ```dart
-import 'package:supabase_chat_ui/supabase_chat_ui.dart';
+import 'package:supabase_chat_widgets/supabase_chat_widgets.dart';
 
 Scaffold(
   appBar: AppBar(title: const Text('general')),
@@ -209,7 +209,7 @@ dart run packages/supabase_chat_e2ee/example/e2ee_demo.dart
 
 ```
    ┌──────────────────┬────────────────────┬────────────────────┐
-   │ supabase_chat_ui │ supabase_chat_e2ee │ supabase_chat_seal  │  opt-in
+   │ supabase_chat_widgets │ supabase_chat_e2ee │ supabase_chat_seal  │  opt-in
    │   (Flutter UI)   │  (Signal · GPL)    │  (ECDH+GCM · MIT)   │
    └────────┬─────────┴─────────┬──────────┴─────────┬───────────┘
             │                   │                    │
@@ -262,7 +262,7 @@ can't pull GPL into your app:
 |---|---|---|---|
 | `supabase_realtime_kit` | MIT | `supabase` (MIT) | ✅ yes |
 | `supabase_chat` | MIT | `supabase` (MIT) | ✅ yes |
-| `supabase_chat_ui` | MIT | Flutter (BSD) — **no crypto dep** | ✅ yes |
+| `supabase_chat_widgets` | MIT | Flutter (BSD) — **no crypto dep** | ✅ yes |
 | `supabase_chat_seal` | MIT | `cryptography` (Apache-2.0), `crypto` (BSD-3) | ✅ **yes** |
 | `supabase_chat_e2ee` | **GPL-3.0** | **`libsignal_protocol_dart` (GPL-3.0)** | ❌ **no** — GPL forces your whole app open-source |
 

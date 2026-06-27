@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:supabase_chat/supabase_chat.dart';
-import 'package:supabase_chat_ui/src/message_bubble.dart';
-import 'package:supabase_chat_ui/src/message_composer.dart';
-import 'package:supabase_chat_ui/src/typing_indicator.dart';
+import 'package:supabase_chat_widgets/src/message_bubble.dart';
+import 'package:supabase_chat_widgets/src/message_composer.dart';
+import 'package:supabase_chat_widgets/src/typing_indicator.dart';
 
 /// A complete, drop-in chat screen body for a [ChatRoom].
 ///

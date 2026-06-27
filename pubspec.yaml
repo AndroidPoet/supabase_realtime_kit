@@ -9,7 +9,7 @@ environment:
 workspace:
   - packages/supabase_realtime_kit
   - packages/supabase_chat
-  - packages/supabase_chat_ui
+  - packages/supabase_chat_widgets
   - packages/supabase_chat_e2ee
   - packages/supabase_chat_seal
   - example

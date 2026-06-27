@@ -1,6 +1,6 @@
 # supabase_chat_example
 
-Runnable Flutter examples for `supabase_chat` / `supabase_chat_ui`. There are
+Runnable Flutter examples for `supabase_chat` / `supabase_chat_widgets`. There are
 two entrypoints; both need a Supabase project with the chat schema applied and
 anonymous sign-ins enabled.
 

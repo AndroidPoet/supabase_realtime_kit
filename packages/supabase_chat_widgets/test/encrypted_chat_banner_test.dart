@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:supabase_chat_ui/supabase_chat_ui.dart';
+import 'package:supabase_chat_widgets/supabase_chat_widgets.dart';
 
 void main() {
   Widget host(Widget child) => MaterialApp(home: Scaffold(body: child));

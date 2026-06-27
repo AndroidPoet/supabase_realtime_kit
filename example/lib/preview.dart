@@ -1,4 +1,4 @@
-// A backend-free UI preview of the supabase_chat_ui widgets with mock data.
+// A backend-free UI preview of the supabase_chat_widgets with mock data.
 // Run with:  flutter run -t lib/preview.dart
 //
 // This bypasses Supabase entirely so you can see the chat UI (bubbles, replies,
@@ -6,7 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:supabase_chat/supabase_chat.dart';
-import 'package:supabase_chat_ui/supabase_chat_ui.dart';
+import 'package:supabase_chat_widgets/supabase_chat_widgets.dart';
 
 const _me = 'me';
 const _alice = 'alice';

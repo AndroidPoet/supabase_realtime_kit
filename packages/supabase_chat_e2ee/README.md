@@ -138,11 +138,11 @@ manager with `requireVerified: false`.
 
 ## Flutter UI (recipe)
 
-`supabase_chat_ui` is **MIT and does not depend on this package**, so it can't
+`supabase_chat_widgets` is **MIT and does not depend on this package**, so it can't
 ship a widget bound to the GPL `EncryptedChatRoom`. Drop this `EncryptedChatView`
 into **your** app instead — combining the MIT widgets with this GPL package in
 your (GPL) app is exactly the supported case. It reuses the presentational
-`EncryptedChatBanner` from `supabase_chat_ui` (no crypto dependency):
+`EncryptedChatBanner` from `supabase_chat_widgets` (no crypto dependency):
 
 ```dart
 import 'dart:async';
@@ -150,7 +150,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_chat/supabase_chat.dart';
 import 'package:supabase_chat_e2ee/supabase_chat_e2ee.dart';
-import 'package:supabase_chat_ui/supabase_chat_ui.dart';
+import 'package:supabase_chat_widgets/supabase_chat_widgets.dart';
 
 /// A drop-in chat screen body for an [EncryptedChatRoom].
 class EncryptedChatView extends StatefulWidget {

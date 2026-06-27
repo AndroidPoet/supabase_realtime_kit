@@ -11,7 +11,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:supabase_chat/supabase_chat.dart';
 import 'package:supabase_chat_e2ee/supabase_chat_e2ee.dart';
-import 'package:supabase_chat_ui/supabase_chat_ui.dart';
+import 'package:supabase_chat_widgets/supabase_chat_widgets.dart';
 
 const _alice = 'alice';
 const _bob = 'bob';

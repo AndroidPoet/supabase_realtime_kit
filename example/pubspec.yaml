@@ -1,5 +1,5 @@
 name: supabase_chat_example
-description: Example app for supabase_chat / supabase_chat_ui.
+description: Example app for supabase_chat / supabase_chat_widgets.
 publish_to: none
 version: 1.0.0
 
@@ -15,7 +15,7 @@ dependencies:
   supabase_chat: ^0.1.0
   supabase_chat_e2ee: ^0.1.0
   supabase_chat_seal: ^0.1.0
-  supabase_chat_ui: ^0.1.0
+  supabase_chat_widgets: ^0.1.0
   supabase_flutter: ^2.5.0
 
 dev_dependencies:

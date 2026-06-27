@@ -18,4 +18,4 @@
   so the pub.dev license matches the obligation you take on. Closed-source apps
   should use `supabase_chat_seal` (MIT) instead.
 - Ships an `EncryptedChatView` Flutter recipe in the README (pairs the MIT
-  `supabase_chat_ui` widgets with this package in your app).
+  `supabase_chat_widgets` widgets with this package in your app).

@@ -1,4 +1,4 @@
-# supabase_chat_ui
+# supabase_chat_widgets
 
 Optional Flutter widgets for [`supabase_chat`](../supabase_chat). Drop in a
 complete chat screen with one widget, or compose your own UI from the same
@@ -27,7 +27,7 @@ automatically.
 ```yaml
 dependencies:
   supabase_chat: ^0.1.0
-  supabase_chat_ui: ^0.1.0
+  supabase_chat_widgets: ^0.1.0
 ```
 
 This package depends on Flutter; the underlying `supabase_chat` and
@@ -41,7 +41,7 @@ working chat screen:
 ```dart
 import 'package:flutter/material.dart';
 import 'package:supabase_chat/supabase_chat.dart';
-import 'package:supabase_chat_ui/supabase_chat_ui.dart';
+import 'package:supabase_chat_widgets/supabase_chat_widgets.dart';
 
 class RoomScreen extends StatelessWidget {
   const RoomScreen({required this.room, super.key});

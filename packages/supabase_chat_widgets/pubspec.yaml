@@ -1,4 +1,4 @@
-name: supabase_chat_ui
+name: supabase_chat_widgets
 description: >-
   Optional Flutter widgets for supabase_chat: a drop-in ChatView plus message
   bubble, composer, and typing indicator building blocks.

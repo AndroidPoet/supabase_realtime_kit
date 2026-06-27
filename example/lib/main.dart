@@ -10,7 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:supabase_chat/supabase_chat.dart';
-import 'package:supabase_chat_ui/supabase_chat_ui.dart';
+import 'package:supabase_chat_widgets/supabase_chat_widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 const _supabaseUrl = String.fromEnvironment('SUPABASE_URL');

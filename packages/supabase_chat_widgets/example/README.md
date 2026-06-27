@@ -1,11 +1,11 @@
-# supabase_chat_ui example
+# supabase_chat_widgets example
 
 Drop a full chat screen into your app with one widget.
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:supabase_chat/supabase_chat.dart';
-import 'package:supabase_chat_ui/supabase_chat_ui.dart';
+import 'package:supabase_chat_widgets/supabase_chat_widgets.dart';
 
 class RoomScreen extends StatelessWidget {
   const RoomScreen({required this.room, super.key});
