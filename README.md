@@ -27,13 +27,20 @@ an offline outbox — from three lines.
 | [`supabase_realtime_kit`](packages/supabase_realtime_kit) | **Pure-Dart core.** Live queries with optimistic merge, presence, broadcast, reconnect reconciliation, and a pluggable offline outbox. | Foundation |
 | [`supabase_chat`](packages/supabase_chat) | **Chat domain** on the core: rooms, messages, typing, presence, reactions, replies, edits, media, read receipts. | Domain |
 | [`supabase_chat_ui`](packages/supabase_chat_ui) | **Optional Flutter widgets**: a drop-in `ChatView` + building blocks (`MessageBubble`, `MessageComposer`, `TypingIndicator`). | UI |
-| [`supabase_chat_e2ee`](packages/supabase_chat_e2ee) | **Opt-in end-to-end encryption** (Signal Protocol): the server stores only ciphertext. Safety numbers, strict verification, key-change rejection. | Security |
+| [`supabase_chat_e2ee`](packages/supabase_chat_e2ee) | **Opt-in E2EE — Signal Protocol** (forward secrecy). The server stores only ciphertext. **GPL-3.0** (open-source apps). | Security |
+| [`supabase_chat_seal`](packages/supabase_chat_seal) | **Opt-in E2EE — ECDH + AES-GCM** sealed box. Same verified-E2EE API, **MIT** licensed → **safe for closed-source apps** (no forward secrecy). | Security |
 | [`example/`](example) | A runnable Flutter chat app wiring it all together. | — |
 | [`e2e/`](e2e) | Real-instance end-to-end tests against a live Supabase project. | — |
 
-The dependency arrow only ever points **down**: `ui` and `e2ee` build on
-`chat`, which builds on the core. The core knows nothing about chat — live
+The dependency arrow only ever points **down**: `ui`, `e2ee`, and `seal` build
+on `chat`, which builds on the core. The core knows nothing about chat — live
 cursors and dashboards reuse the exact same primitives.
+
+> **Two E2EE options, by license.** `supabase_chat_e2ee` uses the Signal
+> Protocol (forward secrecy) but is **GPL-3.0** — distributing it forces your
+> app open-source. `supabase_chat_seal` is **MIT** (ECDH + AES-GCM, no forward
+> secrecy) and is **safe for closed-source apps**. Same verified-E2EE API
+> (`safetyNumber` / `markVerified` / strict mode); pick by your licensing.
 
 ## Why this exists
 
@@ -191,19 +198,20 @@ dart run packages/supabase_chat_e2ee/example/e2ee_demo.dart
 ## Architecture at a glance
 
 ```
-        ┌─────────────────────────────────────────────┐
-        │  supabase_chat_ui   │   supabase_chat_e2ee    │   Flutter / opt-in
-        └───────────┬─────────┴────────────┬────────────┘
-                    │                       │
-              ┌─────┴───────────────────────┴─────┐
-              │           supabase_chat            │   chat domain (pure Dart)
-              └─────────────────┬─────────────────┘
-                                │
-              ┌─────────────────┴─────────────────┐
-              │       supabase_realtime_kit        │   realtime core (pure Dart)
-              └─────────────────┬─────────────────┘
-                                │
-                         package:supabase
+   ┌──────────────────┬────────────────────┬────────────────────┐
+   │ supabase_chat_ui │ supabase_chat_e2ee │ supabase_chat_seal  │  opt-in
+   │   (Flutter UI)   │  (Signal · GPL)    │  (ECDH+GCM · MIT)   │
+   └────────┬─────────┴─────────┬──────────┴─────────┬───────────┘
+            │                   │                    │
+        ┌───┴───────────────────┴────────────────────┴───┐
+        │                 supabase_chat                   │  chat domain (Dart)
+        └─────────────────────┬───────────────────────────┘
+                              │
+        ┌─────────────────────┴───────────────────────────┐
+        │             supabase_realtime_kit                │  realtime core (Dart)
+        └─────────────────────┬───────────────────────────┘
+                              │
+                       package:supabase
 ```
 
 ## Develop

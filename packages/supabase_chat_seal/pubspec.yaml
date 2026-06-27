@@ -1,0 +1,25 @@
+name: supabase_chat_seal
+description: >-
+  Permissive (MIT) end-to-end encryption for supabase_chat: a sealed box over
+  X25519 ECDH + AES-256-GCM with safety-number verification. No copyleft
+  dependencies, so it is safe to use in closed-source apps.
+version: 0.1.0
+repository: https://github.com/androidpoet/supabase_realtime_kit
+issue_tracker: https://github.com/androidpoet/supabase_realtime_kit/issues
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  crypto: ^3.0.0
+  cryptography: ^2.7.0
+  meta: ^1.15.0
+  supabase: ^2.5.0
+  supabase_chat: ^0.1.0
+  supabase_realtime_kit: ^0.1.0
+
+dev_dependencies:
+  test: ^1.25.0
+  very_good_analysis: ^7.0.0
