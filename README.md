@@ -20,6 +20,16 @@ That's a real-time message list with optimistic send, typing indicators,
 presence, reactions, replies, media, read receipts, reconnect backfill, **and**
 an offline outbox — from three lines.
 
+## Demo
+
+Two users (Alice & Bob) chatting end-to-end encrypted side by side — note the
+bottom panel showing the **ciphertext the Supabase server actually stores**,
+while each client renders the decrypted text.
+
+![Encrypted two-user chat demo](docs/media/demo.gif)
+
+> Prefer full quality? [Watch the MP4](docs/media/demo.mp4).
+
 ## The packages
 
 | Package | What it is | Layer |
