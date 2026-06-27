@@ -51,7 +51,23 @@ flutter run -t lib/two_users.dart \
 
 Wide windows show the two users side by side; narrow ones stack them.
 
-## 3 · End-to-end encryption preview
+## 3 · Encrypted two users — see the ciphertext on the server 🔐
+
+Two users chat **end-to-end encrypted** (permissive `supabase_chat_seal`), and a
+bottom panel shows the **exact ciphertext stored in Supabase**
+(`messages.encrypted`) — so you can see the humans read plaintext while the
+database only ever holds an opaque blob. Each side also shows the verified
+safety number and presence.
+
+```bash
+flutter run -t lib/encrypted_two_users.dart \
+  --dart-define=SUPABASE_URL=https://YOUR.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=YOUR_ANON_KEY
+```
+
+Requires `0003_e2ee_public_keys.sql` in addition to `0001_chat_schema.sql`.
+
+## 4 · End-to-end encryption preview
 
 `lib/preview_e2ee.dart` shows the encrypted chat view with the safety-number
 verification banner. See [`supabase_chat_e2ee`](../packages/supabase_chat_e2ee)
