@@ -16,7 +16,6 @@ dependencies:
   flutter:
     sdk: flutter
   supabase_chat: ^0.1.0
-  supabase_chat_e2ee: ^0.1.0
   supabase_realtime_kit: ^0.1.0
 
 dev_dependencies:

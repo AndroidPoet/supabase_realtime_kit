@@ -242,29 +242,28 @@ project; see its README for the env vars it expects.
 
 ## Licensing & compatibility
 
-Every package in this repo is **MIT**, so the core, chat, and UI are safe in
-any app — closed-source included. The **one thing to watch is which E2EE
-package you pick**, because one pulls in a copyleft dependency:
+Four of the five packages are **MIT**, so the core, chat, UI, and the `seal`
+E2EE option are safe in any app — closed-source included. The **one package to
+watch is `supabase_chat_e2ee`**, which is **GPL-3.0** because it links a copyleft
+dependency. The MIT UI package does **not** depend on it, so using the widgets
+can't pull GPL into your app:
 
-| Package | Own license | Transitive deps | Safe in a closed-source app? |
+| Package | License | Notable deps | Safe in a closed-source app? |
 |---|---|---|---|
 | `supabase_realtime_kit` | MIT | `supabase` (MIT) | ✅ yes |
 | `supabase_chat` | MIT | `supabase` (MIT) | ✅ yes |
-| `supabase_chat_ui` | MIT | Flutter (BSD) | ✅ yes |
+| `supabase_chat_ui` | MIT | Flutter (BSD) — **no crypto dep** | ✅ yes |
 | `supabase_chat_seal` | MIT | `cryptography` (Apache-2.0), `crypto` (BSD-3) | ✅ **yes** |
-| `supabase_chat_e2ee` | MIT | **`libsignal_protocol_dart` (GPL-3.0)** | ❌ **no** — GPL forces your whole app open-source |
+| `supabase_chat_e2ee` | **GPL-3.0** | **`libsignal_protocol_dart` (GPL-3.0)** | ❌ **no** — GPL forces your whole app open-source |
 
 **The rule:** if you want Signal-grade forward secrecy *and* your app is
 GPL/open-source, use `supabase_chat_e2ee`. For **any closed-source or
 proprietary app**, use `supabase_chat_seal` (same verified-E2EE API, MIT, no
 forward secrecy). Don't ship `supabase_chat_e2ee` unless your project can
-comply with GPL-3.0 — its MIT code does not lift the GPL obligation of its
-dependency.
+comply with GPL-3.0.
 
 ## License
 
-MIT © Ranbir Singh
-
-The MIT license covers the source in this repository. When you depend on
-`supabase_chat_e2ee`, its transitive `libsignal_protocol_dart` dependency is
-GPL-3.0 and governs the app you distribute — see the table above.
+MIT © Ranbir Singh — for every package **except** `supabase_chat_e2ee`, which is
+**GPL-3.0** (it links the GPL `libsignal_protocol_dart`; that license governs any
+app you distribute with it — see the table above).

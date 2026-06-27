@@ -8,11 +8,15 @@ composer, and typing indicator for every app.
 
 - **`ChatView`** — a full, scrollable chat body: live messages, optimistic
   send, replies, reactions, media, and typing, all wired to a `ChatRoom`.
-- **`EncryptedChatView`** — the same screen for an `EncryptedChatRoom` from
-  [`supabase_chat_e2ee`](../supabase_chat_e2ee), with a built-in safety-number
-  verification banner.
 - **Building blocks** — `MessageBubble`, `MessageComposer`, `TypingIndicator`,
   and `EncryptedChatBanner` are all exported for custom layouts.
+
+> **MIT, no crypto dependency.** This package never imports an encryption
+> package, so using it can't pull GPL code into your app. For an end-to-end-
+> encrypted screen, pair `EncryptedChatBanner` (below) with your chosen E2EE
+> room — `supabase_chat_seal` (MIT) or `supabase_chat_e2ee` (GPL). A ready-made
+> `EncryptedChatView` recipe lives in the
+> [`supabase_chat_e2ee` README](../supabase_chat_e2ee).
 
 Theming follows your app's `ThemeData` / `ColorScheme` — there are **no
 hard-coded brand colors**, so the widgets adopt your light/dark theme
@@ -77,32 +81,20 @@ What it renders for you:
 - A live typing indicator above the composer.
 - A `MessageComposer` that sends on submit and emits typing changes.
 
-## Encrypted chat — `EncryptedChatView`
+## Encrypted chat
 
-For end-to-end-encrypted rooms, use `EncryptedChatView` with an
-`EncryptedChatRoom` (see [`supabase_chat_e2ee`](../supabase_chat_e2ee)). It adds
-a verification banner backed by the room's safety number, and only sends once
-the peer is verified (in strict mode).
+This package stays MIT by **not** depending on any encryption package, so it
+ships no E2EE-bound screen of its own. Instead it exports the presentational
+`EncryptedChatBanner` (below) — pair it with your chosen E2EE room to build an
+encrypted view:
 
-```dart
-import 'package:supabase_chat_e2ee/supabase_chat_e2ee.dart';
-import 'package:supabase_chat_ui/supabase_chat_ui.dart';
+- **`supabase_chat_seal`** (MIT) — for closed-source apps.
+- **`supabase_chat_e2ee`** (GPL) — for open-source apps with forward secrecy.
 
-EncryptedChatView(
-  room: encryptedRoom,        // EncryptedChatRoom
-  peerLabel: 'Alice',         // shown in the verification banner
-);
-```
-
-| Parameter | Type | Default | Purpose |
-|---|---|---|---|
-| `room` | `EncryptedChatRoom` | required | The encrypted room to render and decrypt. |
-| `manageLifecycle` | `bool` | `true` | Join on mount / leave on dispose. |
-| `peerLabel` | `String?` | `null` | Human-friendly peer name shown in the banner. |
-
-The banner surfaces the 60-digit safety number and a **Verify** action; until
-the user confirms it matches on the other device, strict-mode sends are
-blocked. See the e2ee package for the underlying trust model.
+A complete, copy-paste **`EncryptedChatView` recipe** (banner + decrypted
+message list + composer, wired to a room) lives in the
+[`supabase_chat_e2ee` README](../supabase_chat_e2ee) and works with either
+flavor.
 
 ## Building blocks
 
@@ -142,7 +134,8 @@ Renders "X is typing…" for the given user ids.
 
 ### `EncryptedChatBanner`
 
-The verification banner used by `EncryptedChatView`; reusable on its own.
+A presentational safety-number verification banner. Carries no crypto
+dependency, so it sits above any E2EE room (`seal` or `e2ee`).
 
 | Parameter | Type | Default | Purpose |
 |---|---|---|---|

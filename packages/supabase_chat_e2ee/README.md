@@ -11,8 +11,9 @@ built on the [Signal Protocol](https://signal.org/docs/) via
 > links it — and shipping to the App Store / Play Store counts as distribution —
 > you must release your app's **complete source code** under GPL-3.0.
 >
-> This package's own code is MIT, but that does not lift the obligation: the
-> combined work you ship is governed by the GPL dependency.
+> Because shipping it is GPL-governed, **this package is licensed GPL-3.0** too
+> (see `LICENSE`) so the obligation is explicit rather than hidden behind an
+> MIT badge.
 >
 > | You are building… | Use |
 > |---|---|
@@ -135,7 +136,188 @@ manager with `requireVerified: false`.
 > `EncryptedChatRoom` caches decrypted plaintext by client/message id so a
 > message is never decrypted twice.
 
+## Flutter UI (recipe)
+
+`supabase_chat_ui` is **MIT and does not depend on this package**, so it can't
+ship a widget bound to the GPL `EncryptedChatRoom`. Drop this `EncryptedChatView`
+into **your** app instead — combining the MIT widgets with this GPL package in
+your (GPL) app is exactly the supported case. It reuses the presentational
+`EncryptedChatBanner` from `supabase_chat_ui` (no crypto dependency):
+
+```dart
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:supabase_chat/supabase_chat.dart';
+import 'package:supabase_chat_e2ee/supabase_chat_e2ee.dart';
+import 'package:supabase_chat_ui/supabase_chat_ui.dart';
+
+/// A drop-in chat screen body for an [EncryptedChatRoom].
+class EncryptedChatView extends StatefulWidget {
+  const EncryptedChatView({
+    required this.room,
+    super.key,
+    this.manageLifecycle = true,
+    this.peerLabel,
+    this.nameFor,
+  });
+
+  final EncryptedChatRoom room;
+  final bool manageLifecycle;
+  final String? peerLabel;
+  final String Function(String userId)? nameFor;
+
+  @override
+  State<EncryptedChatView> createState() => _EncryptedChatViewState();
+}
+
+class _EncryptedChatViewState extends State<EncryptedChatView> {
+  final ScrollController _scroll = ScrollController();
+  StreamSubscription<Map<String, List<Reaction>>>? _reactionsSub;
+  Map<String, List<Reaction>> _reactions = const {};
+
+  bool _verified = false;
+  String? _safetyNumber;
+  bool _loadingTrust = true;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.manageLifecycle) widget.room.join();
+    _reactionsSub = widget.room.reactionsByMessage.listen((grouped) {
+      if (mounted) setState(() => _reactions = grouped);
+    });
+    unawaited(_loadTrust());
+  }
+
+  @override
+  void dispose() {
+    _reactionsSub?.cancel();
+    if (widget.manageLifecycle) widget.room.leave();
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadTrust() async {
+    final verified = await widget.room.isVerified();
+    final safety =
+        verified ? null : (await widget.room.safetyNumber()).formatted;
+    if (!mounted) return;
+    setState(() {
+      _verified = verified;
+      _safetyNumber = safety;
+      _loadingTrust = false;
+    });
+  }
+
+  Future<void> _verify() async {
+    await widget.room.markVerified();
+    await _loadTrust();
+  }
+
+  Future<void> _send(String text) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final result = await widget.room.send(text);
+    if (result case Err(:final error)) {
+      messenger.showSnackBar(SnackBar(content: Text(_describeError(error))));
+    }
+  }
+
+  String _describeError(Object error) => switch (error) {
+        UnverifiedRecipientException() =>
+          'Verify ${widget.peerLabel ?? 'this contact'} before sending.',
+        IdentityChangedException() =>
+          'Security code changed — re-verify before sending.',
+        _ => 'Message could not be sent.',
+      };
+
+  Message _displayMessage(DecryptedMessage dm) {
+    final m = dm.message;
+    final text =
+        dm.plaintext ?? (dm.decryptFailed ? '🔒 Unable to decrypt' : '');
+    return Message(
+      id: m.id,
+      roomId: m.roomId,
+      senderId: m.senderId,
+      createdAt: m.createdAt,
+      content: text,
+      replyToId: m.replyToId,
+      editedAt: m.editedAt,
+      deletedAt: m.deletedAt,
+      pending: m.pending,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final room = widget.room;
+    return Column(
+      children: [
+        EncryptedChatBanner(
+          verified: _verified,
+          loading: _loadingTrust,
+          safetyNumber: _safetyNumber,
+          peerLabel: widget.peerLabel,
+          onVerify: _verify,
+        ),
+        Expanded(
+          child: StreamBuilder<List<DecryptedMessage>>(
+            stream: room.messages,
+            builder: (context, snapshot) {
+              final decrypted = snapshot.data ?? const <DecryptedMessage>[];
+              if (decrypted.isEmpty) {
+                return const Center(child: Text('No messages yet'));
+              }
+              final display = [for (final d in decrypted) _displayMessage(d)];
+              final byId = {for (final m in display) m.id: m};
+              return ListView.builder(
+                controller: _scroll,
+                reverse: true,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: display.length,
+                itemBuilder: (context, index) {
+                  final message = display[display.length - 1 - index];
+                  return MessageBubble(
+                    message: message,
+                    isMine: message.senderId == room.currentUserId,
+                    repliedTo: message.replyToId == null
+                        ? null
+                        : byId[message.replyToId],
+                    reactions: _reactions[message.id] ?? const [],
+                  );
+                },
+              );
+            },
+          ),
+        ),
+        StreamBuilder<List<String>>(
+          stream: room.typingUserIds,
+          initialData: const [],
+          builder: (context, snapshot) => TypingIndicator(
+            userIds: snapshot.data ?? const [],
+            nameFor: widget.nameFor,
+          ),
+        ),
+        MessageComposer(
+          onSend: _send,
+          onTypingChanged: (typing) => room.setTyping(typing: typing),
+        ),
+      ],
+    );
+  }
+}
+```
+
+The same recipe works for `supabase_chat_seal` — swap `EncryptedChatRoom` for
+`SealedChatRoom` and the import for `package:supabase_chat_seal/...`.
+
 ## Testing
 
 `dart test` runs a full two-party round-trip (X3DH handshake, multi-turn
 ratchet, failure cases) against an in-memory directory — no Supabase needed.
+
+## License
+
+GPL-3.0 (this package links `libsignal_protocol_dart`). See the warning at the
+top — for closed-source apps use [`supabase_chat_seal`](../supabase_chat_seal)
+(MIT).

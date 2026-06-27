@@ -14,3 +14,8 @@
   `IdentityChangedException` (key-change rejection).
 - SQL migration for `device_keys` / `one_time_prekeys` (+ `claim_one_time_prekey`
   RPC) and `messages.encrypted`.
+- Licensed **GPL-3.0** (this package links the GPL `libsignal_protocol_dart`),
+  so the pub.dev license matches the obligation you take on. Closed-source apps
+  should use `supabase_chat_seal` (MIT) instead.
+- Ships an `EncryptedChatView` Flutter recipe in the README (pairs the MIT
+  `supabase_chat_ui` widgets with this package in your app).
