@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+//
 // A backend-free, runnable demonstration of end-to-end encryption.
 //
 //   dart run example/e2ee_demo.dart
