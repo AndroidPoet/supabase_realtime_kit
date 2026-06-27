@@ -1,3 +1,4 @@
+// A command-line walkthrough is expected to print to stdout.
 // ignore_for_file: avoid_print
 //
 // A backend-free, runnable demonstration of end-to-end encryption.
@@ -94,7 +95,7 @@ Future<void> main() async {
     currentUserId: _bob,
   );
   await imposter.publishOwnKeys(); // overwrites Bob's bundle in the directory
-  print('  An attacker swapped Bob\'s key in the directory.');
+  print("  An attacker swapped Bob's key in the directory.");
 
   // Force Alice to contact Bob fresh, so she fetches the now-swapped bundle.
   await alice.identity.store.deleteAllSessions(_bob);
